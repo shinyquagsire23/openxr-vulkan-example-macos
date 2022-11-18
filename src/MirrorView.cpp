@@ -40,12 +40,12 @@ MirrorView::MirrorView(const Context* context) : context(context)
   int width, height;
   glfwGetMonitorWorkarea(monitor, nullptr, nullptr, &width, &height);
 
-#ifdef DEBUG
+//#ifdef DEBUG
   // Create a quarter-sized window in debug mode instead
-  width /= 2;
-  height /= 2;
+  //width /= 2;
+  //height /= 2;
   monitor = nullptr;
-#endif
+//#endif
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   window = glfwCreateWindow(width, height, windowTitle, monitor, nullptr);
@@ -66,6 +66,7 @@ MirrorView::MirrorView(const Context* context) : context(context)
   VkResult result = glfwCreateWindowSurface(context->getVkInstance(), window, nullptr, &surface);
   if (result != VK_SUCCESS)
   {
+    printf("Failed create Window surface\n");
     util::error(Error::GenericGLFW);
     valid = false;
     return;

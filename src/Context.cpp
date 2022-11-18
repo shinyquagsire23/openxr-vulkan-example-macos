@@ -17,15 +17,26 @@ constexpr XrViewConfigurationType viewType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_
 constexpr XrEnvironmentBlendMode environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 } // namespace
 
+#define VK_MAKE_API_VERSION(variant, major, minor, patch) \
+    ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
+
+extern "C" void GLFW_error(int error, const char* description)
+{
+    fputs(description, stderr);
+}
+
 Context::Context()
 {
   // Initialize GLFW
   if (!glfwInit())
   {
+    printf("Fail glfwInit\n");
     util::error(Error::GenericGLFW);
     valid = false;
     return;
   }
+
+  glfwSetErrorCallback(GLFW_error);
 
   if (!glfwVulkanSupported())
   {
@@ -69,8 +80,8 @@ Context::Context()
     applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
     applicationInfo.applicationVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0));
     applicationInfo.engineVersion = static_cast<uint32_t>(XR_MAKE_VERSION(0, 1, 0));
-    strncpy_s(applicationInfo.applicationName, "OpenXR Vulkan Example", XR_MAX_APPLICATION_NAME_SIZE);
-    strncpy_s(applicationInfo.engineName, "OpenXR Vulkan Example", XR_MAX_ENGINE_NAME_SIZE);
+    strncpy(applicationInfo.applicationName, "OpenXR Vulkan Example", XR_MAX_APPLICATION_NAME_SIZE);
+    strncpy(applicationInfo.engineName, "OpenXR Vulkan Example", XR_MAX_ENGINE_NAME_SIZE);
 
     std::vector<const char*> extensions = { XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
 
@@ -280,6 +291,7 @@ Context::Context()
     const char** buffer = glfwGetRequiredInstanceExtensions(&requiredExtensionCount);
     if (!buffer)
     {
+      printf("missing required\n");
       util::error(Error::GenericGLFW);
       valid = false;
       return;
@@ -289,6 +301,8 @@ Context::Context()
     {
       vulkanInstanceExtensions.push_back(buffer[i]);
     }
+    vulkanInstanceExtensions.push_back("VK_MVK_macos_surface");
+    vulkanInstanceExtensions.push_back("VK_EXT_metal_surface");
   }
 
   // Get the required Vulkan instance extensions from OpenXR and add them
@@ -351,7 +365,7 @@ Context::Context()
   // Create a Vulkan instance with all required extensions
   {
     VkApplicationInfo applicationInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-    applicationInfo.apiVersion = VK_API_VERSION_1_3;
+    applicationInfo.apiVersion = VK_API_VERSION_1_2;
     applicationInfo.applicationVersion = VK_MAKE_API_VERSION(0, 0, 1, 0);
     applicationInfo.engineVersion = VK_MAKE_API_VERSION(0, 0, 1, 0);
     applicationInfo.pApplicationName = "OpenXR Vulkan Example";
@@ -667,8 +681,8 @@ bool Context::createDevice(VkSurfaceKHR mirrorSurface)
     vkGetPhysicalDeviceFeatures(physicalDevice, &physicalDeviceFeatures);
     if (!physicalDeviceFeatures.shaderStorageImageMultisample)
     {
-      util::error(Error::FeatureNotSupported, "Vulkan physical device feature \"shaderStorageImageMultisample\"");
-      return false;
+      //util::error(Error::FeatureNotSupported, "Vulkan physical device feature \"shaderStorageImageMultisample\"");
+      //return false;
     }
 
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
@@ -683,7 +697,7 @@ bool Context::createDevice(VkSurfaceKHR mirrorSurface)
       return false;
     }
 
-    physicalDeviceFeatures.shaderStorageImageMultisample = VK_TRUE; // Needed for some OpenXR implementations
+    //physicalDeviceFeatures.shaderStorageImageMultisample = VK_TRUE; // Needed for some OpenXR implementations
     physicalDeviceMultiviewFeatures.multiview = VK_TRUE;            // Needed for stereo rendering
 
     constexpr float queuePriority = 1.0f;

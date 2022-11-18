@@ -2,10 +2,11 @@
 
 #include <glm/gtx/quaternion.hpp>
 
-#include <boxer/boxer.h>
+//#include <boxer/boxer.h>
 
 #include <fstream>
 #include <sstream>
+#include <stdio.h>
 
 void util::error(Error error, const std::string& details)
 {
@@ -51,7 +52,8 @@ void util::error(Error error, const std::string& details)
     s << ": " << details << ".";
   }
 
-  boxer::show(s.str().c_str(), "Error", boxer::Style::Error);
+  //boxer::show(s.str().c_str(), "Error", boxer::Style::Error);
+  printf("%s\n", s.str().c_str());
 }
 
 bool util::loadXrExtensionFunction(XrInstance instance, const std::string& name, PFN_xrVoidFunction* function)

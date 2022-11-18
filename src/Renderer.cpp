@@ -24,28 +24,28 @@ struct Vertex final
 
 constexpr std::array vertices = {
   // Grid
-  Vertex({ -20.0f, 0.0f, -20.0f }, { 1.0f, 0.0f, 0.0f }), Vertex({ -20.0f, 0.0f, +20.0f }, { 0.0f, 1.0f, 0.0f }),
-  Vertex({ +20.0f, 0.0f, -20.0f }, { 0.0f, 0.0f, 1.0f }), Vertex({ +20.0f, 0.0f, +20.0f }, { 1.0f, 0.0f, 1.0f }),
+  Vertex{{ -20.0f, 0.0f, -20.0f }, { 1.0f, 0.0f, 0.0f }}, Vertex{{ -20.0f, 0.0f, +20.0f }, { 0.0f, 1.0f, 0.0f }},
+  Vertex{{ +20.0f, 0.0f, -20.0f }, { 0.0f, 0.0f, 1.0f }}, Vertex{{ +20.0f, 0.0f, +20.0f }, { 1.0f, 0.0f, 1.0f }},
 
   // Cube front left
-  Vertex({ -1.0f, 0.0f, -3.0f }, { 0.8f, 0.8f, 0.8f }), Vertex({ -1.0f, 1.4f, -3.0f }, { 0.8f, 0.8f, 0.8f }),
-  Vertex({ +0.0f, 0.0f, -2.0f }, { 0.8f, 0.8f, 0.8f }), Vertex({ +0.0f, 1.4f, -2.0f }, { 0.8f, 0.8f, 0.8f }),
+  Vertex{{ -1.0f, 0.0f, -3.0f }, { 0.8f, 0.8f, 0.8f }}, Vertex{{ -1.0f, 1.4f, -3.0f }, { 0.8f, 0.8f, 0.8f }},
+  Vertex{{ +0.0f, 0.0f, -2.0f }, { 0.8f, 0.8f, 0.8f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 0.8f, 0.8f, 0.8f }},
 
   // Cube front right
-  Vertex({ +0.0f, 0.0f, -2.0f }, { 0.6f, 0.6f, 0.6f }), Vertex({ +0.0f, 1.4f, -2.0f }, { 0.6f, 0.6f, 0.8f }),
-  Vertex({ +1.0f, 0.0f, -3.0f }, { 0.6f, 0.6f, 0.6f }), Vertex({ +1.0f, 1.4f, -3.0f }, { 0.6f, 0.6f, 0.8f }),
+  Vertex{{ +0.0f, 0.0f, -2.0f }, { 0.6f, 0.6f, 0.6f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 0.6f, 0.6f, 0.8f }},
+  Vertex{{ +1.0f, 0.0f, -3.0f }, { 0.6f, 0.6f, 0.6f }}, Vertex{{ +1.0f, 1.4f, -3.0f }, { 0.6f, 0.6f, 0.8f }},
 
   // Cube back left
-  Vertex({ -1.0f, 0.0f, -3.0f }, { 0.4f, 0.4f, 0.4f }), Vertex({ -1.0f, 1.4f, -3.0f }, { 0.4f, 0.4f, 0.4f }),
-  Vertex({ +0.0f, 0.0f, -4.0f }, { 0.4f, 0.4f, 0.4f }), Vertex({ +0.0f, 1.4f, -4.0f }, { 0.4f, 0.4f, 0.4f }),
+  Vertex{{ -1.0f, 0.0f, -3.0f }, { 0.4f, 0.4f, 0.4f }}, Vertex{{ -1.0f, 1.4f, -3.0f }, { 0.4f, 0.4f, 0.4f }},
+  Vertex{{ +0.0f, 0.0f, -4.0f }, { 0.4f, 0.4f, 0.4f }}, Vertex{{ +0.0f, 1.4f, -4.0f }, { 0.4f, 0.4f, 0.4f }},
 
   // Cube back right
-  Vertex({ +0.0f, 0.0f, -4.0f }, { 0.2f, 0.2f, 0.2f }), Vertex({ +0.0f, 1.4f, -4.0f }, { 0.2f, 0.2f, 0.2f }),
-  Vertex({ +1.0f, 0.0f, -3.0f }, { 0.2f, 0.2f, 0.2f }), Vertex({ +1.0f, 1.4f, -3.0f }, { 0.2f, 0.2f, 0.2f }),
+  Vertex{{ +0.0f, 0.0f, -4.0f }, { 0.2f, 0.2f, 0.2f }}, Vertex{{ +0.0f, 1.4f, -4.0f }, { 0.2f, 0.2f, 0.2f }},
+  Vertex{{ +1.0f, 0.0f, -3.0f }, { 0.2f, 0.2f, 0.2f }}, Vertex{{ +1.0f, 1.4f, -3.0f }, { 0.2f, 0.2f, 0.2f }},
 
   // Cube top
-  Vertex({ -1.0f, 1.4f, -3.0f }, { 1.0f, 1.0f, 1.0f }), Vertex({ +0.0f, 1.4f, -4.0f }, { 1.0f, 1.0f, 1.0f }),
-  Vertex({ +1.0f, 1.4f, -3.0f }, { 1.0f, 1.0f, 1.0f }), Vertex({ +0.0f, 1.4f, -2.0f }, { 1.0f, 1.0f, 1.0f })
+  Vertex{{ -1.0f, 1.4f, -3.0f }, { 1.0f, 1.0f, 1.0f }}, Vertex{{ +0.0f, 1.4f, -4.0f }, { 1.0f, 1.0f, 1.0f }},
+  Vertex{{ +1.0f, 1.4f, -3.0f }, { 1.0f, 1.0f, 1.0f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 1.0f, 1.0f, 1.0f }}
 };
 
 constexpr std::array<uint16_t, 36u> indices = { 0u,  1u,  2u,  1u,  2u,  3u,  4u,  5u,  6u,  5u,  6u,  7u,

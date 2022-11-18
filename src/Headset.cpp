@@ -10,7 +10,7 @@
 namespace
 {
 constexpr XrReferenceSpaceType spaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_SRGB;
+constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
 constexpr VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
 } // namespace
 
@@ -470,7 +470,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
   {
     // Let the host know that we don't want to render this frame
     // We do still need to end the frame however
-    return BeginFrameResult::SkipRender;
+    //return BeginFrameResult::SkipRender;
   }
 
   // Update the eye poses
