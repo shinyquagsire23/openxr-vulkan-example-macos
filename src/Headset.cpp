@@ -14,6 +14,9 @@ constexpr VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
 constexpr VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
 } // namespace
 
+static XrPosef identity_pose = {.orientation = {.x = 0, .y = 0, .z = 0, .w = 1.0},
+                                .position = {.x = 0, .y = 0, .z = 0}};
+
 Headset::Headset(const Context* context) : context(context)
 {
   const VkDevice device = context->getVkDevice();
@@ -371,6 +374,172 @@ Headset::Headset(const Context* context) : context(context)
   // Allocate view and projection matrices
   eyeViewMatrices.resize(eyeCount);
   eyeProjectionMatrices.resize(eyeCount);
+
+
+  // Actions
+  // --- Set up input (actions)
+
+  xrStringToPath(xrInstance, "/user/hand/left", &hand_paths[HAND_LEFT_INDEX]);
+  xrStringToPath(xrInstance, "/user/hand/right", &hand_paths[HAND_RIGHT_INDEX]);
+
+  
+  xrStringToPath(xrInstance, "/user/hand/left/input/select/click",
+                 &select_click_path[HAND_LEFT_INDEX]);
+  xrStringToPath(xrInstance, "/user/hand/right/input/select/click",
+                 &select_click_path[HAND_RIGHT_INDEX]);
+
+  
+  xrStringToPath(xrInstance, "/user/hand/left/input/trigger/value",
+                 &trigger_value_path[HAND_LEFT_INDEX]);
+  xrStringToPath(xrInstance, "/user/hand/right/input/trigger/value",
+                 &trigger_value_path[HAND_RIGHT_INDEX]);
+
+  
+  xrStringToPath(xrInstance, "/user/hand/left/input/thumbstick/y",
+                 &thumbstick_y_path[HAND_LEFT_INDEX]);
+  xrStringToPath(xrInstance, "/user/hand/right/input/thumbstick/y",
+                 &thumbstick_y_path[HAND_RIGHT_INDEX]);
+  
+  xrStringToPath(xrInstance, "/user/hand/left/input/grip/pose", &grip_pose_path[HAND_LEFT_INDEX]);
+  xrStringToPath(xrInstance, "/user/hand/right/input/grip/pose", &grip_pose_path[HAND_RIGHT_INDEX]);
+
+  xrStringToPath(xrInstance, "/user/hand/left/output/haptic", &haptic_path[HAND_LEFT_INDEX]);
+  xrStringToPath(xrInstance, "/user/hand/right/output/haptic", &haptic_path[HAND_RIGHT_INDEX]);
+
+
+  XrActionSetCreateInfo gameplay_actionset_info = {
+      .type = XR_TYPE_ACTION_SET_CREATE_INFO, .next = NULL, .priority = 0};
+  strcpy(gameplay_actionset_info.actionSetName, "gameplay_actionset");
+  strcpy(gameplay_actionset_info.localizedActionSetName, "Gameplay Actions");
+
+  XrActionSet gameplay_actionset;
+  result = xrCreateActionSet(xrInstance, &gameplay_actionset_info, &gameplay_actionset);
+  if (XR_SUCCEEDED(result))
+
+  {
+    XrActionCreateInfo action_info = {.type = XR_TYPE_ACTION_CREATE_INFO,
+                                      .next = NULL,
+                                      .actionType = XR_ACTION_TYPE_POSE_INPUT,
+                                      .countSubactionPaths = HAND_COUNT,
+                                      .subactionPaths = hand_paths};
+    strcpy(action_info.actionName, "handpose");
+    strcpy(action_info.localizedActionName, "Hand Pose");
+
+    result = xrCreateAction(gameplay_actionset, &action_info, &hand_pose_action);
+    //if (!XR_SUCCEEDED(result))
+    //  return 1;
+  }
+  // poses can't be queried directly, we need to create a space for each
+  
+  for (int hand = 0; hand < HAND_COUNT; hand++) {
+    XrActionSpaceCreateInfo action_space_info = {.type = XR_TYPE_ACTION_SPACE_CREATE_INFO,
+                                                 .next = NULL,
+                                                 .action = hand_pose_action,
+                                                 .poseInActionSpace = identity_pose,
+                                                 .subactionPath = hand_paths[hand]};
+
+    result = xrCreateActionSpace(session, &action_space_info, &hand_pose_spaces[hand]);
+    //if (!XR_SUCCEEDED(result))
+    //  return 1;
+  }
+
+  // Grabbing objects is not actually implemented in this demo, it only gives some  haptic feebdack.
+  
+  {
+    XrActionCreateInfo action_info = {.type = XR_TYPE_ACTION_CREATE_INFO,
+                                      .next = NULL,
+                                      .actionType = XR_ACTION_TYPE_FLOAT_INPUT,
+                                      .countSubactionPaths = HAND_COUNT,
+                                      .subactionPaths = hand_paths};
+    strcpy(action_info.actionName, "grabobjectfloat");
+    strcpy(action_info.localizedActionName, "Grab Object");
+
+    result = xrCreateAction(gameplay_actionset, &action_info, &grab_action_float);
+    //if (!XR_SUCCEEDED(result))
+    //  return 1;
+  }
+
+  
+  {
+    XrActionCreateInfo action_info = {.type = XR_TYPE_ACTION_CREATE_INFO,
+                                      .next = NULL,
+                                      .actionType = XR_ACTION_TYPE_VIBRATION_OUTPUT,
+                                      .countSubactionPaths = HAND_COUNT,
+                                      .subactionPaths = hand_paths};
+    strcpy(action_info.actionName, "haptic");
+    strcpy(action_info.localizedActionName, "Haptic Vibration");
+    result = xrCreateAction(gameplay_actionset, &action_info, &haptic_action);
+    //if (!XR_SUCCEEDED(result))
+    //  return 1;
+  }
+
+  // suggest actions for simple controller
+  {
+    XrPath interaction_profile_path;
+    result = xrStringToPath(xrInstance, "/interaction_profiles/khr/simple_controller",
+                            &interaction_profile_path);
+    //if (!xr_check(xrInstance, result, "failed to get interaction profile"))
+    //  return 1;
+
+    const XrActionSuggestedBinding bindings[] = {
+        {.action = hand_pose_action, .binding = grip_pose_path[HAND_LEFT_INDEX]},
+        {.action = hand_pose_action, .binding = grip_pose_path[HAND_RIGHT_INDEX]},
+        // boolean input select/click will be converted to float that is either 0 or 1
+        {.action = grab_action_float, .binding = select_click_path[HAND_LEFT_INDEX]},
+        {.action = grab_action_float, .binding = select_click_path[HAND_RIGHT_INDEX]},
+        {.action = haptic_action, .binding = haptic_path[HAND_LEFT_INDEX]},
+        {.action = haptic_action, .binding = haptic_path[HAND_RIGHT_INDEX]},
+    };
+
+    const XrInteractionProfileSuggestedBinding suggested_bindings = {
+        .type = XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING,
+        .next = NULL,
+        .interactionProfile = interaction_profile_path,
+        .countSuggestedBindings = sizeof(bindings) / sizeof(bindings[0]),
+        .suggestedBindings = bindings};
+
+    xrSuggestInteractionProfileBindings(xrInstance, &suggested_bindings);
+    //if (!xr_check(xrInstance, result, "failed to suggest bindings"))
+    //  return 1;
+  }
+
+  // suggest actions for valve index controller
+  {
+    XrPath interaction_profile_path;
+    result = xrStringToPath(xrInstance, "/interaction_profiles/valve/index_controller",
+                            &interaction_profile_path);
+    //if (!xr_check(xrInstance, result, "failed to get interaction profile"))
+    //  return 1;
+
+    const XrActionSuggestedBinding bindings[] = {
+        {.action = hand_pose_action, .binding = grip_pose_path[HAND_LEFT_INDEX]},
+        {.action = hand_pose_action, .binding = grip_pose_path[HAND_RIGHT_INDEX]},
+        {.action = grab_action_float, .binding = trigger_value_path[HAND_LEFT_INDEX]},
+        {.action = grab_action_float, .binding = trigger_value_path[HAND_RIGHT_INDEX]},
+        {.action = haptic_action, .binding = haptic_path[HAND_LEFT_INDEX]},
+        {.action = haptic_action, .binding = haptic_path[HAND_RIGHT_INDEX]},
+    };
+
+    const XrInteractionProfileSuggestedBinding suggested_bindings = {
+        .type = XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING,
+        .next = NULL,
+        .interactionProfile = interaction_profile_path,
+        .countSuggestedBindings = sizeof(bindings) / sizeof(bindings[0]),
+        .suggestedBindings = bindings};
+
+    xrSuggestInteractionProfileBindings(xrInstance, &suggested_bindings);
+    //if (!xr_check(xrInstance, result, "failed to suggest bindings"))
+    //  return 1;
+  }
+
+  XrSessionActionSetsAttachInfo actionset_attach_info = {
+      .type = XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO,
+      .next = NULL,
+      .countActionSets = 1,
+      .actionSets = &gameplay_actionset};
+  result = xrAttachSessionActionSets(session, &actionset_attach_info);
+  //if (!xr_check(instance, result, "failed to attach action set"))
+  //  return 1;
 }
 
 Headset::~Headset()
@@ -527,6 +696,72 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
     util::error(Error::GenericOpenXR);
     return BeginFrameResult::Error;
   }
+
+
+  // query each value / location with a subaction path != XR_NULL_PATH
+  // resulting in individual values per hand/.
+
+  for (int i = 0; i < HAND_COUNT; i++) {
+    XrActionStatePose hand_pose_state = {.type = XR_TYPE_ACTION_STATE_POSE, .next = NULL};
+    {
+      XrActionStateGetInfo get_info = {.type = XR_TYPE_ACTION_STATE_GET_INFO,
+                                       .next = NULL,
+                                       .action = hand_pose_action,
+                                       .subactionPath = hand_paths[i]};
+      result = xrGetActionStatePose(session, &get_info, &hand_pose_state);
+      //xr_check(instance, result, "failed to get pose value!");
+    }
+    //printf("Hand pose %d active: %d\n", i, hand_pose_state.isActive);
+
+    hand_locations[i].type = XR_TYPE_SPACE_LOCATION;
+    hand_locations[i].next = NULL;
+
+    result = xrLocateSpace(hand_pose_spaces[i], space, frameState.predictedDisplayTime,
+                           &hand_locations[i]);
+    //xr_check(instance, result, "failed to locate space %d!", i);
+
+
+    /*printf("Pose %d valid %d: %f %f %f %f, %f %f %f\n", i,
+    1, hand_locations[i].pose.orientation.x,
+    hand_locations[i].pose.orientation.y, hand_locations[i].pose.orientation.z,
+    hand_locations[i].pose.orientation.w, hand_locations[i].pose.position.x,
+    hand_locations[i].pose.position.y, hand_locations[i].pose.position.z
+    );*/
+
+
+    grab_value[i].type = XR_TYPE_ACTION_STATE_FLOAT;
+    grab_value[i].next = NULL;
+    {
+      XrActionStateGetInfo get_info = {.type = XR_TYPE_ACTION_STATE_GET_INFO,
+                                       .next = NULL,
+                                       .action = grab_action_float,
+                                       .subactionPath = hand_paths[i]};
+
+      result = xrGetActionStateFloat(session, &get_info, &grab_value[i]);
+      //xr_check(instance, result, "failed to get grab value!");
+    }
+
+    // printf("Grab %d active %d, current %f, changed %d\n", i,
+    // grabValue[i].isActive, grabValue[i].currentState,
+    // grabValue[i].changedSinceLastSync);
+
+    if (grab_value[i].isActive && grab_value[i].currentState > 0.75) {
+      XrHapticVibration vibration = {.type = XR_TYPE_HAPTIC_VIBRATION,
+                                     .next = NULL,
+                                     .amplitude = 0.5,
+                                     .duration = XR_MIN_HAPTIC_DURATION,
+                                     .frequency = XR_FREQUENCY_UNSPECIFIED};
+
+      XrHapticActionInfo haptic_action_info = {.type = XR_TYPE_HAPTIC_ACTION_INFO,
+                                               .next = NULL,
+                                               .action = haptic_action,
+                                               .subactionPath = hand_paths[i]};
+      result = xrApplyHapticFeedback(session, &haptic_action_info,
+                                     (const XrHapticBaseHeader*)&vibration);
+      //xr_check(instance, result, "failed to apply haptic feedback!");
+      // printf("Sent haptic output to hand %d\n", i);
+    }
+  };
 
   return BeginFrameResult::RenderFully; // Request full rendering of the frame
 }

@@ -19,6 +19,8 @@ public:
   struct UniformBufferData final
   {
     glm::mat4 world;
+    glm::mat4 hand_l;
+    glm::mat4 hand_r;
     glm::mat4 viewProjection[2];
   } uniformBufferData;
 

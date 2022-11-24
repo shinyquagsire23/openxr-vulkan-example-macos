@@ -35,7 +35,7 @@ private:
   VkDescriptorSetLayout descriptorSetLayout = nullptr;
   std::vector<RenderProcess*> renderProcesses;
   VkPipelineLayout pipelineLayout = nullptr;
-  Pipeline *gridPipeline = nullptr, *cubePipeline = nullptr;
+  Pipeline *gridPipeline = nullptr, *cubePipeline = nullptr,  *cubeHandLPipeline = nullptr,  *cubeHandRPipeline = nullptr;
   Buffer *vertexBuffer = nullptr, *indexBuffer = nullptr;
   size_t currentRenderProcessIndex = 0u;
 };

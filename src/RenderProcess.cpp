@@ -12,6 +12,8 @@ RenderProcess::RenderProcess(VkDevice device,
 {
   // Initialize the uniform buffer data
   uniformBufferData.world = glm::mat4(1.0f);
+  uniformBufferData.hand_l = glm::mat4(1.0f);
+  uniformBufferData.hand_r = glm::mat4(1.0f);
   uniformBufferData.viewProjection[0] = glm::mat4(1.0f);
   uniformBufferData.viewProjection[1] = glm::mat4(1.0f);
 

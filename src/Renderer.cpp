@@ -9,6 +9,7 @@
 #include "Util.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include <array>
 
@@ -163,6 +164,26 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
     return;
   }
 
+  // Create the cube pipeline
+  cubeHandLPipeline = new Pipeline(vkDevice, pipelineLayout, headset->getRenderPass(), "shaders/HandL.vert.spv",
+                              "shaders/Cube.frag.spv", { vertexInputBindingDescription },
+                              { vertexInputAttributeDescriptionPosition, vertexInputAttributeDescriptionColor });
+  if (!cubeHandLPipeline->isValid())
+  {
+    valid = false;
+    return;
+  }
+
+  // Create the cube pipeline
+  cubeHandRPipeline = new Pipeline(vkDevice, pipelineLayout, headset->getRenderPass(), "shaders/HandR.vert.spv",
+                              "shaders/Cube.frag.spv", { vertexInputBindingDescription },
+                              { vertexInputAttributeDescriptionPosition, vertexInputAttributeDescriptionColor });
+  if (!cubeHandRPipeline->isValid())
+  {
+    valid = false;
+    return;
+  }
+
   // Create a vertex buffer
   {
     // Create a staging buffer and fill it with the vertex data
@@ -279,7 +300,26 @@ void Renderer::render(size_t swapchainImageIndex)
   }
 
   // Update the uniform buffer data
+  float handScaleAll = 0.1;
+  glm::vec3 handScale = glm::vec3(handScaleAll * (1.0 / 2.0), handScaleAll * (1.0 / 2.0), handScaleAll * (1.0 / 2.0));
+
+  glm::mat4 trans1 = glm::translate(glm::mat4(1.0f), { 0.0f, -1.4f/2.0, 2.0f });
+  glm::mat4 scale1 = glm::scale(glm::mat4(1.0f), handScale);
+  glm::mat4 trans2_l = glm::translate(glm::mat4(1.0f), { headset->hand_locations[0].pose.position.x, headset->hand_locations[0].pose.position.y, headset->hand_locations[0].pose.position.z });
+  glm::mat4 trans2_r = glm::translate(glm::mat4(1.0f), { headset->hand_locations[1].pose.position.x, headset->hand_locations[1].pose.position.y, headset->hand_locations[1].pose.position.z });
+  
+  glm::quat rot_l_q = glm::quat(headset->hand_locations[0].pose.orientation.w, headset->hand_locations[0].pose.orientation.x, headset->hand_locations[0].pose.orientation.y, headset->hand_locations[0].pose.orientation.z);
+  glm::quat rot_r_q = glm::quat(headset->hand_locations[1].pose.orientation.w, headset->hand_locations[1].pose.orientation.x, headset->hand_locations[1].pose.orientation.y, headset->hand_locations[1].pose.orientation.z);
+  
+  glm::mat4 rot_l = glm::toMat4(rot_l_q);
+  glm::mat4 rot_r = glm::toMat4(rot_r_q);
+
+  glm::mat4 realMat_l = trans2_l * rot_l * scale1 * trans1;
+  glm::mat4 realMat_r = trans2_r * rot_r * scale1 * trans1;
+
   renderProcess->uniformBufferData.world = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f });
+  renderProcess->uniformBufferData.hand_l = realMat_l;
+  renderProcess->uniformBufferData.hand_r = realMat_r;
   for (size_t eyeIndex = 0u; eyeIndex < headset->getEyeCount(); ++eyeIndex)
   {
     renderProcess->uniformBufferData.viewProjection[eyeIndex] =
@@ -338,6 +378,14 @@ void Renderer::render(size_t swapchainImageIndex)
 
   // Draw the cube
   cubePipeline->bind(commandBuffer);
+  vkCmdDrawIndexed(commandBuffer, 30u, 1u, 6u, 0u, 0u);
+
+  // Draw the lhand cube
+  cubeHandLPipeline->bind(commandBuffer);
+  vkCmdDrawIndexed(commandBuffer, 30u, 1u, 6u, 0u, 0u);
+
+  // Draw the rhand cube
+  cubeHandRPipeline->bind(commandBuffer);
   vkCmdDrawIndexed(commandBuffer, 30u, 1u, 6u, 0u, 0u);
 
   vkCmdEndRenderPass(commandBuffer);

@@ -37,13 +37,18 @@ MirrorView::MirrorView(const Context* context) : context(context)
   // Create a fullscreen window
   GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
-  int width, height;
-  glfwGetMonitorWorkarea(monitor, nullptr, nullptr, &width, &height);
+  //const VkExtent2D eyeResolution = headset->getEyeResolution(mirrorEyeIndex);
+  //int width = eyeResolution.width;
+  //int height = eyeResolution.height;
+  //int width, height;
+  //glfwGetMonitorWorkarea(monitor, nullptr, nullptr, &width, &height);
+  int width = 1808;
+  int height = 1920;
 
 //#ifdef DEBUG
   // Create a quarter-sized window in debug mode instead
-  //width /= 2;
-  //height /= 2;
+  width /= 2;
+  height /= 2;
   monitor = nullptr;
 //#endif
 

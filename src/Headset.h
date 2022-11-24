@@ -13,6 +13,10 @@
 class Context;
 class RenderTarget;
 
+#define HAND_LEFT_INDEX (0)
+#define HAND_RIGHT_INDEX (1)
+#define HAND_COUNT (2)
+
 class Headset final
 {
 public:
@@ -37,6 +41,14 @@ public:
   glm::mat4 getEyeViewMatrix(size_t eyeIndex) const;
   glm::mat4 getEyeProjectionMatrix(size_t eyeIndex) const;
   RenderTarget* getRenderTarget(size_t swapchainImageIndex) const;
+
+  XrActionStateFloat grab_value[HAND_COUNT];
+  XrSpaceLocation hand_locations[HAND_COUNT];
+  XrPath grip_pose_path[HAND_COUNT];
+  XrPath haptic_path[HAND_COUNT];
+  XrPath thumbstick_y_path[HAND_COUNT];
+  XrPath trigger_value_path[HAND_COUNT];
+  XrPath select_click_path[HAND_COUNT];
 
 private:
   bool valid = true;
@@ -67,6 +79,12 @@ private:
   VkImage depthImage = nullptr;
   VkDeviceMemory depthMemory = nullptr;
   VkImageView depthImageView = nullptr;
+
+  XrAction hand_pose_action;
+  XrSpace hand_pose_spaces[HAND_COUNT];
+  XrAction grab_action_float;
+  XrAction haptic_action;
+  XrPath hand_paths[HAND_COUNT];
 
   bool beginSession() const;
   bool endSession() const;

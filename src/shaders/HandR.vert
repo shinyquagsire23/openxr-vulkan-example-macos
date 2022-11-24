@@ -16,7 +16,7 @@ layout(location = 1) out vec3 position; // In world space
 
 void main()
 {
-  vec4 pos = ubo.world * vec4(inPosition, 1.0);
+  vec4 pos = ubo.hand_r * vec4(inPosition, 1.0);
   gl_Position = ubo.viewProjection[gl_ViewIndex] * pos;
   color = inColor;
   position = pos.xyz;
