@@ -29,12 +29,12 @@ constexpr std::array vertices = {
   Vertex{{ +20.0f, 0.0f, -20.0f }, { 0.0f, 0.0f, 1.0f }}, Vertex{{ +20.0f, 0.0f, +20.0f }, { 1.0f, 0.0f, 1.0f }},
 
   // Cube front left
-  Vertex{{ -1.0f, 0.0f, -3.0f }, { 0.8f, 0.8f, 0.8f }}, Vertex{{ -1.0f, 1.4f, -3.0f }, { 0.8f, 0.8f, 0.8f }},
-  Vertex{{ +0.0f, 0.0f, -2.0f }, { 0.8f, 0.8f, 0.8f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 0.8f, 0.8f, 0.8f }},
+  Vertex{{ -1.0f, 0.0f, -3.0f }, { 0.0f, 0.0f, 1.0f }}, Vertex{{ -1.0f, 1.4f, -3.0f }, { 0.0f, 0.0f, 1.0f }},
+  Vertex{{ +0.0f, 0.0f, -2.0f }, { 0.0f, 0.0f, 1.0f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 0.0f, 0.0f, 1.0f }},
 
   // Cube front right
-  Vertex{{ +0.0f, 0.0f, -2.0f }, { 0.6f, 0.6f, 0.6f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 0.6f, 0.6f, 0.8f }},
-  Vertex{{ +1.0f, 0.0f, -3.0f }, { 0.6f, 0.6f, 0.6f }}, Vertex{{ +1.0f, 1.4f, -3.0f }, { 0.6f, 0.6f, 0.8f }},
+  Vertex{{ +0.0f, 0.0f, -2.0f }, { 0.6f, 0.0f, 0.0f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 0.6f, 0.0f, 0.0f }},
+  Vertex{{ +1.0f, 0.0f, -3.0f }, { 0.6f, 0.0f, 0.0f }}, Vertex{{ +1.0f, 1.4f, -3.0f }, { 0.6f, 0.0f, 0.0f }},
 
   // Cube back left
   Vertex{{ -1.0f, 0.0f, -3.0f }, { 0.4f, 0.4f, 0.4f }}, Vertex{{ -1.0f, 1.4f, -3.0f }, { 0.4f, 0.4f, 0.4f }},
@@ -45,13 +45,18 @@ constexpr std::array vertices = {
   Vertex{{ +1.0f, 0.0f, -3.0f }, { 0.2f, 0.2f, 0.2f }}, Vertex{{ +1.0f, 1.4f, -3.0f }, { 0.2f, 0.2f, 0.2f }},
 
   // Cube top
-  Vertex{{ -1.0f, 1.4f, -3.0f }, { 1.0f, 1.0f, 1.0f }}, Vertex{{ +0.0f, 1.4f, -4.0f }, { 1.0f, 1.0f, 1.0f }},
-  Vertex{{ +1.0f, 1.4f, -3.0f }, { 1.0f, 1.0f, 1.0f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 1.0f, 1.0f, 1.0f }}
+  Vertex{{ -1.0f, 1.4f, -3.0f }, { 0.0f, 1.0f, 0.0f }}, Vertex{{ +0.0f, 1.4f, -4.0f }, { 0.0f, 1.0f, 0.0f }},
+  Vertex{{ +1.0f, 1.4f, -3.0f }, { 0.0f, 1.0f, 0.0f }}, Vertex{{ +0.0f, 1.4f, -2.0f }, { 0.0f, 1.0f, 0.0f }},
+
+  // Cube bottom
+  Vertex{{ -1.0f, 0.0f, -3.0f }, { 0.0f, 0.2f, 0.0f }}, Vertex{{ +0.0f, 0.0f, -4.0f }, { 0.0f, 0.2f, 0.0f }},
+  Vertex{{ +1.0f, 0.0f, -3.0f }, { 0.0f, 0.2f, 0.0f }}, Vertex{{ +0.0f, 0.0f, -2.0f }, { 0.0f, 0.2f, 0.0f }}
 };
 
-constexpr std::array<uint16_t, 36u> indices = { 0u,  1u,  2u,  1u,  2u,  3u,  4u,  5u,  6u,  5u,  6u,  7u,
+constexpr std::array<uint16_t, 42u> indices = { 0u,  1u,  2u,  1u,  2u,  3u,  4u,  5u,  6u,  5u,  6u,  7u,
                                                 8u,  9u,  10u, 9u,  10u, 11u, 12u, 13u, 14u, 13u, 14u, 15u,
-                                                16u, 17u, 18u, 17u, 18u, 19u, 20u, 21u, 22u, 20u, 22u, 23u };
+                                                16u, 17u, 18u, 17u, 18u, 19u, 20u, 21u, 22u, 20u, 22u, 23u,
+                                                24u, 25u, 26u, 24u, 26u, 27u };
 } // namespace
 
 Renderer::Renderer(const Context* context, const Headset* headset) : context(context), headset(headset)
@@ -164,24 +169,18 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
     return;
   }
 
-  // Create the cube pipeline
-  cubeHandLPipeline = new Pipeline(vkDevice, pipelineLayout, headset->getRenderPass(), "shaders/HandL.vert.spv",
-                              "shaders/Cube.frag.spv", { vertexInputBindingDescription },
-                              { vertexInputAttributeDescriptionPosition, vertexInputAttributeDescriptionColor });
-  if (!cubeHandLPipeline->isValid())
-  {
-    valid = false;
-    return;
-  }
-
-  // Create the cube pipeline
-  cubeHandRPipeline = new Pipeline(vkDevice, pipelineLayout, headset->getRenderPass(), "shaders/HandR.vert.spv",
-                              "shaders/Cube.frag.spv", { vertexInputBindingDescription },
-                              { vertexInputAttributeDescriptionPosition, vertexInputAttributeDescriptionColor });
-  if (!cubeHandRPipeline->isValid())
-  {
-    valid = false;
-    return;
+  for (int i = 0; i < 64; i++) {
+    char tmp[256];
+    snprintf(tmp, 256, "shaders/Pt%u.vert.spv", i);
+    // Create the cube pipeline
+    trackedPipeline[i] = new Pipeline(vkDevice, pipelineLayout, headset->getRenderPass(), tmp,
+                                "shaders/Cube.frag.spv", { vertexInputBindingDescription },
+                                { vertexInputAttributeDescriptionPosition, vertexInputAttributeDescriptionColor });
+    if (!trackedPipeline[i]->isValid())
+    {
+      valid = false;
+      return;
+    }
   }
 
   // Create a vertex buffer
@@ -300,26 +299,25 @@ void Renderer::render(size_t swapchainImageIndex)
   }
 
   // Update the uniform buffer data
-  float handScaleAll = 0.1;
-  glm::vec3 handScale = glm::vec3(handScaleAll * (1.0 / 2.0), handScaleAll * (1.0 / 2.0), handScaleAll * (1.0 / 2.0));
+  float handScaleAll1 = 0.1;
+  float handScaleAll2 = 0.01;
+  glm::vec3 handScale1 = glm::vec3(handScaleAll1 * (1.0 / 2.0), handScaleAll1 * (1.0 / 2.0), handScaleAll1 * (1.0 / 2.0));
+  glm::vec3 handScale2 = glm::vec3(handScaleAll2 * (1.0 / 2.0), handScaleAll2 * (1.0 / 2.0), handScaleAll2 * (1.0 / 2.0));
 
-  glm::mat4 trans1 = glm::translate(glm::mat4(1.0f), { 0.0f, -1.4f/2.0, 2.0f });
-  glm::mat4 scale1 = glm::scale(glm::mat4(1.0f), handScale);
-  glm::mat4 trans2_l = glm::translate(glm::mat4(1.0f), { headset->hand_locations[0].pose.position.x, headset->hand_locations[0].pose.position.y, headset->hand_locations[0].pose.position.z });
-  glm::mat4 trans2_r = glm::translate(glm::mat4(1.0f), { headset->hand_locations[1].pose.position.x, headset->hand_locations[1].pose.position.y, headset->hand_locations[1].pose.position.z });
-  
-  glm::quat rot_l_q = glm::quat(headset->hand_locations[0].pose.orientation.w, headset->hand_locations[0].pose.orientation.x, headset->hand_locations[0].pose.orientation.y, headset->hand_locations[0].pose.orientation.z);
-  glm::quat rot_r_q = glm::quat(headset->hand_locations[1].pose.orientation.w, headset->hand_locations[1].pose.orientation.x, headset->hand_locations[1].pose.orientation.y, headset->hand_locations[1].pose.orientation.z);
-  
-  glm::mat4 rot_l = glm::toMat4(rot_l_q);
-  glm::mat4 rot_r = glm::toMat4(rot_r_q);
 
-  glm::mat4 realMat_l = trans2_l * rot_l * scale1 * trans1;
-  glm::mat4 realMat_r = trans2_r * rot_r * scale1 * trans1;
+  for (int i = 0; i < 64; i++)
+  {
+    glm::mat4 trans1 = glm::translate(glm::mat4(1.0f), { 0.0f, -1.4f/2.0, 2.0f });
+    glm::mat4 scale1 = glm::scale(glm::mat4(1.0f), i < 2 ? handScale1 : handScale2);
+    glm::mat4 trans2_l = glm::translate(glm::mat4(1.0f), { headset->tracked_locations[i].pose.position.x, headset->tracked_locations[i].pose.position.y, headset->tracked_locations[i].pose.position.z });
+    glm::quat rot_l_q = glm::quat(headset->tracked_locations[i].pose.orientation.w, headset->tracked_locations[i].pose.orientation.x, headset->tracked_locations[i].pose.orientation.y, headset->tracked_locations[i].pose.orientation.z);
+    glm::mat4 rot_l = glm::toMat4(rot_l_q);
+    glm::mat4 realMat_l = trans2_l * rot_l * scale1 * trans1;
+
+    renderProcess->uniformBufferData.tracked_points[i] = realMat_l;
+  }
 
   renderProcess->uniformBufferData.world = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f });
-  renderProcess->uniformBufferData.hand_l = realMat_l;
-  renderProcess->uniformBufferData.hand_r = realMat_r;
   for (size_t eyeIndex = 0u; eyeIndex < headset->getEyeCount(); ++eyeIndex)
   {
     renderProcess->uniformBufferData.viewProjection[eyeIndex] =
@@ -378,15 +376,13 @@ void Renderer::render(size_t swapchainImageIndex)
 
   // Draw the cube
   cubePipeline->bind(commandBuffer);
-  vkCmdDrawIndexed(commandBuffer, 30u, 1u, 6u, 0u, 0u);
+  vkCmdDrawIndexed(commandBuffer, 36u, 1u, 6u, 0u, 0u);
 
   // Draw the lhand cube
-  cubeHandLPipeline->bind(commandBuffer);
-  vkCmdDrawIndexed(commandBuffer, 30u, 1u, 6u, 0u, 0u);
-
-  // Draw the rhand cube
-  cubeHandRPipeline->bind(commandBuffer);
-  vkCmdDrawIndexed(commandBuffer, 30u, 1u, 6u, 0u, 0u);
+  for (int i = 0; i < 64; i++) {
+    trackedPipeline[i]->bind(commandBuffer);
+    vkCmdDrawIndexed(commandBuffer, 36u, 1u, 6u, 0u, 0u);
+  }
 
   vkCmdEndRenderPass(commandBuffer);
 }

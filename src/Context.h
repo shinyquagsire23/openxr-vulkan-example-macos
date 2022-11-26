@@ -28,6 +28,10 @@ public:
   VkQueue getVkDrawQueue() const;
   VkQueue getVkPresentQueue() const;
 
+  PFN_xrCreateHandTrackerEXT xrCreateHandTrackerEXT = nullptr;
+  PFN_xrDestroyHandTrackerEXT xrDestroyHandTrackerEXT = nullptr;
+  PFN_xrLocateHandJointsEXT xrLocateHandJointsEXT = nullptr;
+
 private:
   bool valid = true;
 
@@ -39,6 +43,7 @@ private:
 
   XrInstance xrInstance = nullptr;
   XrSystemId systemId = 0u;
+  bool supportsHandTracking;
 
   VkInstance vkInstance = nullptr;
   VkPhysicalDevice physicalDevice = nullptr;

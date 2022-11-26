@@ -43,12 +43,29 @@ public:
   RenderTarget* getRenderTarget(size_t swapchainImageIndex) const;
 
   XrActionStateFloat grab_value[HAND_COUNT];
-  XrSpaceLocation hand_locations[HAND_COUNT];
+  XrSpaceLocation tracked_locations[64];
+
+
   XrPath grip_pose_path[HAND_COUNT];
   XrPath haptic_path[HAND_COUNT];
   XrPath thumbstick_y_path[HAND_COUNT];
   XrPath trigger_value_path[HAND_COUNT];
   XrPath select_click_path[HAND_COUNT];
+
+  XrHandTrackerEXT leftHandTracker;
+  XrHandTrackerEXT rightHandTracker;
+
+  XrHandJointLocationEXT leftJointLocations[XR_HAND_JOINT_COUNT_EXT];
+  XrHandJointVelocityEXT leftJointVelocities[XR_HAND_JOINT_COUNT_EXT];
+
+  XrHandJointLocationEXT rightJointLocations[XR_HAND_JOINT_COUNT_EXT];
+  XrHandJointVelocityEXT rightJointVelocities[XR_HAND_JOINT_COUNT_EXT];
+
+  XrHandJointVelocitiesEXT leftVelocities;
+  XrHandJointLocationsEXT leftLocations;
+
+  XrHandJointVelocitiesEXT rightVelocities;
+  XrHandJointLocationsEXT rightLocations;
 
 private:
   bool valid = true;

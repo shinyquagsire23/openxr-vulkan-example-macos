@@ -540,6 +540,43 @@ Headset::Headset(const Context* context) : context(context)
   result = xrAttachSessionActionSets(session, &actionset_attach_info);
   //if (!xr_check(instance, result, "failed to attach action set"))
   //  return 1;
+
+  // Create a hand tracker for left hand that tracks default set of hand joints.
+  {
+      XrHandTrackerCreateInfoEXT createInfo{XR_TYPE_HAND_TRACKER_CREATE_INFO_EXT};
+      createInfo.hand = XR_HAND_LEFT_EXT;
+      createInfo.handJointSet = XR_HAND_JOINT_SET_DEFAULT_EXT;
+      context->xrCreateHandTrackerEXT(session, &createInfo, &leftHandTracker);
+  }
+
+  // right hand
+  {
+      XrHandTrackerCreateInfoEXT createInfo{XR_TYPE_HAND_TRACKER_CREATE_INFO_EXT};
+      createInfo.hand = XR_HAND_RIGHT_EXT;
+      createInfo.handJointSet = XR_HAND_JOINT_SET_DEFAULT_EXT;
+      context->xrCreateHandTrackerEXT(session, &createInfo, &rightHandTracker);
+  }
+
+  // Allocate buffers to receive joint location and velocity data before frame
+  // loop starts
+
+  leftVelocities = {XR_TYPE_HAND_JOINT_VELOCITIES_EXT};
+  leftVelocities.jointCount = XR_HAND_JOINT_COUNT_EXT;
+  leftVelocities.jointVelocities = leftJointVelocities;
+
+  leftLocations = {XR_TYPE_HAND_JOINT_LOCATIONS_EXT};
+  leftLocations.next = &leftVelocities;
+  leftLocations.jointCount = XR_HAND_JOINT_COUNT_EXT;
+  leftLocations.jointLocations = leftJointLocations;
+
+  rightVelocities = {XR_TYPE_HAND_JOINT_VELOCITIES_EXT};
+  rightVelocities.jointCount = XR_HAND_JOINT_COUNT_EXT;
+  rightVelocities.jointVelocities = rightJointVelocities;
+
+  rightLocations = {XR_TYPE_HAND_JOINT_LOCATIONS_EXT};
+  rightLocations.next = &rightVelocities;
+  rightLocations.jointCount = XR_HAND_JOINT_COUNT_EXT;
+  rightLocations.jointLocations = rightJointLocations;
 }
 
 Headset::~Headset()
@@ -697,6 +734,10 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
     return BeginFrameResult::Error;
   }
 
+  for (int i = 0; i < 64; i++) {
+    tracked_locations[i].pose.position = {0.0, 0.0, 0.0};
+    tracked_locations[i].pose.orientation = {0.0, 0.0, 0.0, 1.0};
+  }
 
   // query each value / location with a subaction path != XR_NULL_PATH
   // resulting in individual values per hand/.
@@ -713,11 +754,11 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
     }
     //printf("Hand pose %d active: %d\n", i, hand_pose_state.isActive);
 
-    hand_locations[i].type = XR_TYPE_SPACE_LOCATION;
-    hand_locations[i].next = NULL;
+    tracked_locations[i].type = XR_TYPE_SPACE_LOCATION;
+    tracked_locations[i].next = NULL;
 
     result = xrLocateSpace(hand_pose_spaces[i], space, frameState.predictedDisplayTime,
-                           &hand_locations[i]);
+                           &tracked_locations[i]);
     //xr_check(instance, result, "failed to locate space %d!", i);
 
 
@@ -762,6 +803,48 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
       // printf("Sent haptic output to hand %d\n", i);
     }
   };
+
+  XrHandJointsLocateInfoEXT locateInfo{XR_TYPE_HAND_JOINTS_LOCATE_INFO_EXT};
+  locateInfo.baseSpace = space;
+  locateInfo.time = frameState.predictedDisplayTime;
+
+  context->xrLocateHandJointsEXT(leftHandTracker, &locateInfo, &leftLocations);
+  context->xrLocateHandJointsEXT(rightHandTracker, &locateInfo, &rightLocations);
+
+  if (leftLocations.isActive) {
+      // The returned joint location array can be directly indexed with
+      // XrHandJointEXT enum.
+      const XrPosef &indexTipInWorld =
+          leftJointLocations[XR_HAND_JOINT_INDEX_TIP_EXT].pose;
+      const XrPosef &thumbTipInWorld =
+          leftJointLocations[XR_HAND_JOINT_THUMB_TIP_EXT].pose;
+        const XrPosef &palmInWorld =
+          leftJointLocations[XR_HAND_JOINT_WRIST_EXT].pose;
+
+      // using the returned radius and velocity of index finger tip.
+      const float indexTipRadius =
+          leftJointLocations[XR_HAND_JOINT_INDEX_TIP_EXT].radius;
+      const XrHandJointVelocityEXT &indexTipVelocity =
+          leftJointVelocities[XR_HAND_JOINT_INDEX_TIP_EXT];
+
+      for (int i = 0; i <= XR_HAND_JOINT_LITTLE_TIP_EXT; i++) {
+        tracked_locations[2+i].pose = leftJointLocations[i].pose;
+      }
+      
+
+      //printf("l: %f %f %f\n", palmInWorld.position.x, palmInWorld.position.y, palmInWorld.position.z);
+  }
+
+  if (rightLocations.isActive) {
+        const XrPosef &palmInWorld =
+          rightJointLocations[XR_HAND_JOINT_WRIST_EXT].pose;
+
+      for (int i = 0; i <= XR_HAND_JOINT_LITTLE_TIP_EXT; i++) {
+        tracked_locations[2+XR_HAND_JOINT_LITTLE_TIP_EXT+1+i].pose = rightJointLocations[i].pose;
+      }
+
+      //printf("r: %f %f %f\n", palmInWorld.position.x, palmInWorld.position.y, palmInWorld.position.z);
+  }
 
   return BeginFrameResult::RenderFully; // Request full rendering of the frame
 }

@@ -83,7 +83,7 @@ Context::Context()
     strncpy(applicationInfo.applicationName, "OpenXR Vulkan Example", XR_MAX_APPLICATION_NAME_SIZE);
     strncpy(applicationInfo.engineName, "OpenXR Vulkan Example", XR_MAX_ENGINE_NAME_SIZE);
 
-    std::vector<const char*> extensions = { XR_KHR_VULKAN_ENABLE_EXTENSION_NAME };
+    std::vector<const char*> extensions = { XR_KHR_VULKAN_ENABLE_EXTENSION_NAME, XR_EXT_HAND_TRACKING_EXTENSION_NAME };
 
 #ifdef DEBUG
     // Add the OpenXR debug instance extension
@@ -159,6 +159,30 @@ Context::Context()
     return;
   }
 
+  if (!util::loadXrExtensionFunction(xrInstance, "xrDestroyHandTrackerEXT",
+                                     reinterpret_cast<PFN_xrVoidFunction*>(&xrDestroyHandTrackerEXT)))
+  {
+    util::error(Error::FeatureNotSupported, "OpenXR extension function \"xrDestroyHandTrackerEXT\"");
+    valid = false;
+    return;
+  }
+
+  if (!util::loadXrExtensionFunction(xrInstance, "xrLocateHandJointsEXT",
+                                     reinterpret_cast<PFN_xrVoidFunction*>(&xrLocateHandJointsEXT)))
+  {
+    util::error(Error::FeatureNotSupported, "OpenXR extension function \"xrLocateHandJointsEXT\"");
+    valid = false;
+    return;
+  }
+
+  if (!util::loadXrExtensionFunction(xrInstance, "xrCreateHandTrackerEXT",
+                                     reinterpret_cast<PFN_xrVoidFunction*>(&xrCreateHandTrackerEXT)))
+  {
+    util::error(Error::FeatureNotSupported, "OpenXR extension function \"xrCreateHandTrackerEXT\"");
+    valid = false;
+    return;
+  }
+
 #ifdef DEBUG
   // Create an OpenXR debug utils messenger for validation
   {
@@ -222,6 +246,19 @@ Context::Context()
     util::error(Error::HeadsetNotConnected);
     valid = false;
     return;
+  }
+
+  // Inspect hand tracking system properties
+  XrSystemHandTrackingPropertiesEXT handTrackingSystemProperties{
+      XR_TYPE_SYSTEM_HAND_TRACKING_PROPERTIES_EXT};
+  XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES,
+                                      &handTrackingSystemProperties};
+  xrGetSystemProperties(xrInstance, systemId, &systemProperties);
+
+  supportsHandTracking = true;
+  if (!handTrackingSystemProperties.supportsHandTracking) {
+      printf("System doesn't support hand tracking...\n");
+      supportsHandTracking = false;
   }
 
   // Check the supported environment blend modes
