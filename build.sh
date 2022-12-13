@@ -72,4 +72,4 @@ glslc --target-env=vulkan1.2 shaders/Pt63.vert -std=450core -O -o shaders/Pt63.v
 glslc --target-env=vulkan1.2 shaders/Cube.frag -std=450core -O -o shaders/Cube.frag.spv && \
 glslc --target-env=vulkan1.2 shaders/Grid.frag -std=450core -O -o shaders/Grid.frag.spv && \
 #XR_RUNTIME_JSON=/Users/maxamillion/workspace/monado/build/openxr_monado-dev.json OXR_DEBUG_GUI=0 MVK_CONFIG_RESUME_LOST_DEVICE=1 ./build/openxr-example
-OXR_DEBUG_GUI=0 MVK_CONFIG_RESUME_LOST_DEVICE=1 OXR_DEBUG_ENTRYPOINTS=0 lldb -o run ./build/openxr-example
+OXR_DEBUG_GUI=0 MVK_CONFIG_RESUME_LOST_DEVICE=1 OXR_DEBUG_ENTRYPOINTS=0 XRT_COMPOSITOR_COMPUTE=1 MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE=1 lldb -o run ./build/openxr-example
