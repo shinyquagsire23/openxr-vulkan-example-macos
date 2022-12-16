@@ -12,13 +12,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenGL REQUIRED)
 find_package(GLEW 2.0 REQUIRED)
 #find_package(glm REQUIRED)
-find_package(VULKAN REQUIRED Vulkan::Vulkan)
+find_package(Vulkan MODULE)
 
 add_subdirectory(external/glm)
 add_subdirectory(external/glfw)
 INCLUDE(FindPkgConfig)
-PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
-PKG_SEARCH_MODULE(GLFW REQUIRED glfw3)
+find_package(glfw3 REQUIRED)
 
 add_executable(openxr-example 
     src/Buffer.cpp
@@ -66,13 +65,13 @@ else()
   target_link_libraries(openxr-example PRIVATE OpenXR::openxr_loader)
 endif()
 
-target_link_libraries(openxr-example PRIVATE  ${OPENGL_LIBRARIES} ${SDL2_LINK_LIBRARIES} ${GLEW_LIBRARIES} m glm ${GLFW_LINK_LIBRARIES} /Users/maxamillion/workspace/monado/build/src/xrt/targets/openxr/libopenxr_monado.dylib /opt/homebrew/Caskroom/vulkan-sdk/1.2.162.1/macOS/lib/libvulkan.1.dylib) # /opt/homebrew/Caskroom/vulkan-sdk/1.2.162.1/macOS/lib/libMoltenVK.dylib
+target_link_libraries(openxr-example PRIVATE  ${OPENGL_LIBRARIES} ${SDL2_LINK_LIBRARIES} ${GLEW_LIBRARIES} m glm /usr/lib/libglfw.so Vulkan::Vulkan) # /opt/homebrew/Caskroom/vulkan-sdk/1.2.162.1/macOS/lib/libMoltenVK.dylib
 target_include_directories(openxr-example PRIVATE ${SDL2_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS})
 
 if(MSVC)
   target_compile_options(openxr-example PRIVATE /W4 /WX)
 else(MSVC)
-  target_compile_options(openxr-example PRIVATE -g -pedantic -Wall -Wextra -Wno-unused-parameter)
+  target_compile_options(openxr-example PRIVATE -g)
 endif(MSVC)
 
 

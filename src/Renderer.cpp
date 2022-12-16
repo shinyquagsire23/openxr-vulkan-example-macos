@@ -70,6 +70,7 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
   commandPoolCreateInfo.queueFamilyIndex = context->getVkDrawQueueFamilyIndex();
   if (vkCreateCommandPool(vkDevice, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
   {
+    printf("Fail vkCreateCommandPool\n");
     util::error(Error::GenericVulkan);
     valid = false;
     return;
@@ -78,7 +79,7 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
   // Create a descriptor pool
   VkDescriptorPoolSize descriptorPoolSize;
   descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  descriptorPoolSize.descriptorCount = 1u;
+  descriptorPoolSize.descriptorCount = 10u;
 
   VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
   descriptorPoolCreateInfo.poolSizeCount = 1u;
@@ -86,6 +87,7 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
   descriptorPoolCreateInfo.maxSets = static_cast<uint32_t>(numFramesInFlight);
   if (vkCreateDescriptorPool(vkDevice, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
   {
+    printf("Fail vkCreateDescriptorPool\n");
     util::error(Error::GenericVulkan);
     valid = false;
     return;
@@ -104,6 +106,7 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
   if (vkCreateDescriptorSetLayout(vkDevice, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) !=
       VK_SUCCESS)
   {
+    printf("Fail vkCreateDescriptorSetLayout\n");
     util::error(Error::GenericVulkan);
     valid = false;
     return;
@@ -115,6 +118,7 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
   pipelineLayoutCreateInfo.setLayoutCount = 1u;
   if (vkCreatePipelineLayout(vkDevice, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
   {
+    printf("Fail vkCreatePipelineLayout\n");
     util::error(Error::GenericVulkan);
     valid = false;
     return;

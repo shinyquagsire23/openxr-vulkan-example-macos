@@ -3,6 +3,8 @@
 #include "Buffer.h"
 #include "Util.h"
 
+#include <cstring>
+
 RenderProcess::RenderProcess(VkDevice device,
                              VkPhysicalDevice physicalDevice,
                              VkCommandPool commandPool,
@@ -26,6 +28,7 @@ RenderProcess::RenderProcess(VkDevice device,
   commandBufferAllocateInfo.commandBufferCount = 1u;
   if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer) != VK_SUCCESS)
   {
+    printf("Fail vkAllocateCommandBuffers\n");
     util::error(Error::GenericVulkan);
     valid = false;
     return;
@@ -35,6 +38,7 @@ RenderProcess::RenderProcess(VkDevice device,
   VkSemaphoreCreateInfo semaphoreCreateInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
   if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &drawableSemaphore) != VK_SUCCESS)
   {
+    printf("Fail vkCreateSemaphore\n");
     util::error(Error::GenericVulkan);
     valid = false;
     return;
@@ -42,6 +46,7 @@ RenderProcess::RenderProcess(VkDevice device,
 
   if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &presentableSemaphore) != VK_SUCCESS)
   {
+    printf("Fail vkCreateSemaphore\n");
     util::error(Error::GenericVulkan);
     valid = false;
     return;
@@ -52,6 +57,7 @@ RenderProcess::RenderProcess(VkDevice device,
   fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Make sure the fence starts off signaled
   if (vkCreateFence(device, &fenceCreateInfo, nullptr, &busyFence) != VK_SUCCESS)
   {
+    printf("Fail vkCreateFence\n");
     util::error(Error::GenericVulkan);
     valid = false;
     return;
@@ -76,6 +82,7 @@ RenderProcess::RenderProcess(VkDevice device,
   const VkResult result = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
   if (result != VK_SUCCESS)
   {
+    printf("Fail vkAllocateDescriptorSets %d\n", result);
     util::error(Error::GenericVulkan);
     valid = false;
     return;

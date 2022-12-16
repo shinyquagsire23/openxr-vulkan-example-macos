@@ -2,9 +2,10 @@
 
 #include "Util.h"
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <sstream>
+#include <cstring>
 
 #ifdef DEBUG
   #include <array>
@@ -306,6 +307,7 @@ Context::Context()
     uint32_t instanceExtensionCount;
     if (vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtensionCount, nullptr) != VK_SUCCESS)
     {
+      printf("Fail vkEnumerateInstanceExtensionProperties\n");
       util::error(Error::GenericVulkan);
       valid = false;
       return;
@@ -315,6 +317,7 @@ Context::Context()
     if (vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtensionCount,
                                                supportedVulkanInstanceExtensions.data()) != VK_SUCCESS)
     {
+      printf("Fail vkEnumerateInstanceExtensionProperties\n");
       util::error(Error::GenericVulkan);
       valid = false;
       return;
@@ -338,8 +341,8 @@ Context::Context()
     {
       vulkanInstanceExtensions.push_back(buffer[i]);
     }
-    vulkanInstanceExtensions.push_back("VK_MVK_macos_surface");
-    vulkanInstanceExtensions.push_back("VK_EXT_metal_surface");
+    //vulkanInstanceExtensions.push_back("VK_MVK_macos_surface");
+    //vulkanInstanceExtensions.push_back("VK_EXT_metal_surface");
   }
 
   // Get the required Vulkan instance extensions from OpenXR and add them
@@ -421,6 +424,7 @@ Context::Context()
     uint32_t instanceLayerCount;
     if (vkEnumerateInstanceLayerProperties(&instanceLayerCount, nullptr) != VK_SUCCESS)
     {
+      printf("Fail vkEnumerateInstanceLayerProperties\n");
       util::error(Error::GenericVulkan);
       valid = false;
       return;
@@ -429,6 +433,7 @@ Context::Context()
     supportedInstanceLayers.resize(instanceLayerCount);
     if (vkEnumerateInstanceLayerProperties(&instanceLayerCount, supportedInstanceLayers.data()) != VK_SUCCESS)
     {
+      printf("Fail vkEnumerateInstanceLayerProperties\n");
       util::error(Error::GenericVulkan);
       valid = false;
       return;
@@ -463,6 +468,7 @@ Context::Context()
 
     if (vkCreateInstance(&instanceCreateInfo, nullptr, &vkInstance) != VK_SUCCESS)
     {
+      printf("Fail vkCreateInstance\n");
       util::error(Error::GenericVulkan);
       valid = false;
       return;
@@ -519,6 +525,7 @@ Context::Context()
     if (vkCreateDebugUtilsMessengerEXT(vkInstance, &debugUtilsMessengerCreateInfo, nullptr, &vkDebugUtilsMessenger) !=
         VK_SUCCESS)
     {
+    printf("Fail vkCreateDebugUtilsMessengerEXT\n");
       util::error(Error::GenericVulkan);
       valid = false;
       return;
@@ -648,6 +655,7 @@ bool Context::createDevice(VkSurfaceKHR mirrorSurface)
     uint32_t deviceExtensionCount;
     if (vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &deviceExtensionCount, nullptr) != VK_SUCCESS)
     {
+    printf("Fail vkEnumerateDeviceExtensionProperties\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -656,6 +664,7 @@ bool Context::createDevice(VkSurfaceKHR mirrorSurface)
     if (vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &deviceExtensionCount,
                                              supportedVulkanDeviceExtensions.data()) != VK_SUCCESS)
     {
+    printf("Fail vkEnumerateDeviceExtensionProperties\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -762,6 +771,7 @@ bool Context::createDevice(VkSurfaceKHR mirrorSurface)
     deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos.data();
     if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) != VK_SUCCESS)
     {
+    printf("Fail vkCreateDevice\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -780,6 +790,7 @@ bool Context::createDevice(VkSurfaceKHR mirrorSurface)
   vkGetDeviceQueue(device, drawQueueFamilyIndex, 0u, &drawQueue);
   if (!drawQueue)
   {
+  printf("Fail vkGetDeviceQueue\n");
     util::error(Error::GenericVulkan);
     return false;
   }
@@ -787,6 +798,7 @@ bool Context::createDevice(VkSurfaceKHR mirrorSurface)
   vkGetDeviceQueue(device, presentQueueFamilyIndex, 0u, &presentQueue);
   if (!presentQueue)
   {
+  printf("Fail vkGetDeviceQueue\n");
     util::error(Error::GenericVulkan);
     return false;
   }

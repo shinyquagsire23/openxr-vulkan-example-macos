@@ -3,6 +3,7 @@
 #include "Util.h"
 
 #include <sstream>
+#include <cstring>
 
 Buffer::Buffer(const VkDevice device,
                const VkPhysicalDevice physicalDevice,

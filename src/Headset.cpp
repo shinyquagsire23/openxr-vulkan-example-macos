@@ -6,6 +6,7 @@
 
 #include <array>
 #include <sstream>
+#include <cstring>
 
 namespace
 {
@@ -78,6 +79,7 @@ Headset::Headset(const Context* context) : context(context)
     renderPassCreateInfo.pSubpasses = &subpassDescription;
     if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
     {
+      printf("Fail vkCreateRenderPass\n");
       util::error(Error::GenericVulkan);
       valid = false;
       return;
@@ -216,6 +218,7 @@ Headset::Headset(const Context* context) : context(context)
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     if (vkCreateImage(device, &imageCreateInfo, nullptr, &depthImage) != VK_SUCCESS)
     {
+      printf("Fail vkCreateImage\n");
       util::error(Error::GenericVulkan);
       valid = false;
       return;
@@ -435,8 +438,9 @@ Headset::Headset(const Context* context) : context(context)
     XrActionSpaceCreateInfo action_space_info = {.type = XR_TYPE_ACTION_SPACE_CREATE_INFO,
                                                  .next = NULL,
                                                  .action = hand_pose_action,
+                                                 .subactionPath = hand_paths[hand],
                                                  .poseInActionSpace = identity_pose,
-                                                 .subactionPath = hand_paths[hand]};
+                                                 };
 
     result = xrCreateActionSpace(session, &action_space_info, &hand_pose_spaces[hand]);
     //if (!XR_SUCCEEDED(result))
@@ -789,9 +793,9 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
     if (grab_value[i].isActive && grab_value[i].currentState > 0.75) {
       XrHapticVibration vibration = {.type = XR_TYPE_HAPTIC_VIBRATION,
                                      .next = NULL,
-                                     .amplitude = 0.5,
                                      .duration = XR_MIN_HAPTIC_DURATION,
-                                     .frequency = XR_FREQUENCY_UNSPECIFIED};
+                                     .frequency = XR_FREQUENCY_UNSPECIFIED,
+                                     .amplitude = 0.5};
 
       XrHapticActionInfo haptic_action_info = {.type = XR_TYPE_HAPTIC_ACTION_INFO,
                                                .next = NULL,

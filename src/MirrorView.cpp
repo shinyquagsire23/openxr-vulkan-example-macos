@@ -6,7 +6,7 @@
 #include "Renderer.h"
 #include "Util.h"
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <sstream>
 
@@ -307,12 +307,14 @@ bool MirrorView::recreateSwapchain()
   {
     if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities) != VK_SUCCESS)
     {
+      printf("Fail vkGetPhysicalDeviceSurfaceCapabilitiesKHR\n");
       util::error(Error::GenericVulkan);
       return false;
     }
 
     if (!(surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
     {
+      printf("Fail other one\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -348,6 +350,7 @@ bool MirrorView::recreateSwapchain()
     uint32_t surfaceFormatCount = 0u;
     if (vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, nullptr) != VK_SUCCESS)
     {
+      printf("Fail vkGetPhysicalDeviceSurfaceFormatsKHR\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -356,6 +359,7 @@ bool MirrorView::recreateSwapchain()
     if (vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, surfaceFormats.data()) !=
         VK_SUCCESS)
     {
+      printf("Fail vkGetPhysicalDeviceSurfaceFormatsKHR\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -403,6 +407,7 @@ bool MirrorView::recreateSwapchain()
   swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
   if (vkCreateSwapchainKHR(vkDevice, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
   {
+    printf("Fail vkCreateSwapchainKHR\n");
     util::error(Error::GenericVulkan);
     return false;
   }
@@ -411,6 +416,7 @@ bool MirrorView::recreateSwapchain()
   uint32_t swapchainImageCount = 0u;
   if (vkGetSwapchainImagesKHR(vkDevice, swapchain, &swapchainImageCount, nullptr) != VK_SUCCESS)
   {
+    printf("Fail vkGetSwapchainImagesKHR\n");
     util::error(Error::GenericVulkan);
     return false;
   }
@@ -418,6 +424,7 @@ bool MirrorView::recreateSwapchain()
   swapchainImages.resize(swapchainImageCount);
   if (vkGetSwapchainImagesKHR(vkDevice, swapchain, &swapchainImageCount, swapchainImages.data()) != VK_SUCCESS)
   {
+    printf("Fail vkGetSwapchainImagesKHR\n");
     util::error(Error::GenericVulkan);
     return false;
   }

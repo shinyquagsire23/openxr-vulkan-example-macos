@@ -6,6 +6,8 @@
 
 #include <fstream>
 #include <sstream>
+#include <cstring>
+
 #include <stdio.h>
 
 void util::error(Error error, const std::string& details)
