@@ -2,6 +2,7 @@
 
 #include "Buffer.h"
 #include "Util.h"
+#include <vulkan/vk_enum_string_helper.h>
 
 RenderProcess::RenderProcess(VkDevice device,
                              VkPhysicalDevice physicalDevice,
@@ -10,11 +11,12 @@ RenderProcess::RenderProcess(VkDevice device,
                              VkDescriptorSetLayout descriptorSetLayout)
 : device(device)
 {
+  VkResult result = VK_SUCCESS;
   // Initialize the uniform buffer data
   uniformBufferData.world = glm::mat4(1.0f);
   for (int i = 0; i < 64; i++)
   {
-    uniformBufferData.tracked_points[i] = glm::mat4(1.0f);
+    //uniformBufferData.tracked_points[i] = glm::mat4(1.0f);
   }
   uniformBufferData.viewProjection[0] = glm::mat4(1.0f);
   uniformBufferData.viewProjection[1] = glm::mat4(1.0f);
@@ -24,25 +26,25 @@ RenderProcess::RenderProcess(VkDevice device,
   commandBufferAllocateInfo.commandPool = commandPool;
   commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   commandBufferAllocateInfo.commandBufferCount = 1u;
-  if (vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer) != VK_SUCCESS)
+  if ((result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer)) != VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }
 
   // Create semaphores
   VkSemaphoreCreateInfo semaphoreCreateInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
-  if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &drawableSemaphore) != VK_SUCCESS)
+  if ((result = vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &drawableSemaphore)) != VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }
 
-  if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &presentableSemaphore) != VK_SUCCESS)
+  if ((result = vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &presentableSemaphore)) != VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }
@@ -50,9 +52,9 @@ RenderProcess::RenderProcess(VkDevice device,
   // Create a memory fence
   VkFenceCreateInfo fenceCreateInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
   fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Make sure the fence starts off signaled
-  if (vkCreateFence(device, &fenceCreateInfo, nullptr, &busyFence) != VK_SUCCESS)
+  if ((result = vkCreateFence(device, &fenceCreateInfo, nullptr, &busyFence)) != VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }
@@ -73,10 +75,10 @@ RenderProcess::RenderProcess(VkDevice device,
   descriptorSetAllocateInfo.descriptorPool = descriptorPool;
   descriptorSetAllocateInfo.descriptorSetCount = 1u;
   descriptorSetAllocateInfo.pSetLayouts = &descriptorSetLayout;
-  const VkResult result = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
+  result = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
   if (result != VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }

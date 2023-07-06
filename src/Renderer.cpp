@@ -8,6 +8,7 @@
 #include "RenderTarget.h"
 #include "Util.h"
 
+#include <vulkan/vk_enum_string_helper.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
@@ -63,14 +64,15 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
 {
   const VkPhysicalDevice vkPhysicalDevice = context->getVkPhysicalDevice();
   const VkDevice vkDevice = context->getVkDevice();
+  VkResult result = VK_SUCCESS;
 
   // Create a command pool
   VkCommandPoolCreateInfo commandPoolCreateInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
   commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   commandPoolCreateInfo.queueFamilyIndex = context->getVkDrawQueueFamilyIndex();
-  if (vkCreateCommandPool(vkDevice, &commandPoolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
+  if ((result = vkCreateCommandPool(vkDevice, &commandPoolCreateInfo, nullptr, &commandPool)) != VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }
@@ -78,15 +80,15 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
   // Create a descriptor pool
   VkDescriptorPoolSize descriptorPoolSize;
   descriptorPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  descriptorPoolSize.descriptorCount = 1u;
+  descriptorPoolSize.descriptorCount = 16u;
 
   VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
-  descriptorPoolCreateInfo.poolSizeCount = 1u;
+  descriptorPoolCreateInfo.poolSizeCount = 16u;
   descriptorPoolCreateInfo.pPoolSizes = &descriptorPoolSize;
   descriptorPoolCreateInfo.maxSets = static_cast<uint32_t>(numFramesInFlight);
-  if (vkCreateDescriptorPool(vkDevice, &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+  if ((result = vkCreateDescriptorPool(vkDevice, &descriptorPoolCreateInfo, nullptr, &descriptorPool)) != VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }
@@ -101,10 +103,10 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
   VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
   descriptorSetLayoutCreateInfo.bindingCount = 1u;
   descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
-  if (vkCreateDescriptorSetLayout(vkDevice, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout) !=
+  if ((result = vkCreateDescriptorSetLayout(vkDevice, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSetLayout)) !=
       VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }
@@ -113,9 +115,9 @@ Renderer::Renderer(const Context* context, const Headset* headset) : context(con
   VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
   pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
   pipelineLayoutCreateInfo.setLayoutCount = 1u;
-  if (vkCreatePipelineLayout(vkDevice, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+  if ((result = vkCreatePipelineLayout(vkDevice, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout)) != VK_SUCCESS)
   {
-    util::error(Error::GenericVulkan);
+    util::error(Error::GenericVulkan, string_VkResult(result));
     valid = false;
     return;
   }
