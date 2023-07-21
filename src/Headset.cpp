@@ -603,7 +603,7 @@ Headset::Headset(const Context* context) : context(context)
       XrHandTrackerCreateInfoEXT createInfo{XR_TYPE_HAND_TRACKER_CREATE_INFO_EXT};
       createInfo.hand = XR_HAND_LEFT_EXT;
       createInfo.handJointSet = XR_HAND_JOINT_SET_DEFAULT_EXT;
-      context->xrCreateHandTrackerEXT(session, &createInfo, &leftHandTracker);
+      left_hand_valid = XR_SUCCEEDED(context->xrCreateHandTrackerEXT(session, &createInfo, &leftHandTracker));
   }
 
   // right hand
@@ -611,7 +611,7 @@ Headset::Headset(const Context* context) : context(context)
       XrHandTrackerCreateInfoEXT createInfo{XR_TYPE_HAND_TRACKER_CREATE_INFO_EXT};
       createInfo.hand = XR_HAND_RIGHT_EXT;
       createInfo.handJointSet = XR_HAND_JOINT_SET_DEFAULT_EXT;
-      context->xrCreateHandTrackerEXT(session, &createInfo, &rightHandTracker);
+      right_hand_valid = XR_SUCCEEDED(context->xrCreateHandTrackerEXT(session, &createInfo, &rightHandTracker));
   }
 
   // Allocate buffers to receive joint location and velocity data before frame
@@ -901,8 +901,10 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
   locateInfo.baseSpace = space;
   locateInfo.time = frameState.predictedDisplayTime;
 
-  context->xrLocateHandJointsEXT(leftHandTracker, &locateInfo, &leftLocations);
-  context->xrLocateHandJointsEXT(rightHandTracker, &locateInfo, &rightLocations);
+  if (left_hand_valid)
+    context->xrLocateHandJointsEXT(leftHandTracker, &locateInfo, &leftLocations);
+  if (right_hand_valid)
+    context->xrLocateHandJointsEXT(rightHandTracker, &locateInfo, &rightLocations);
 
   if (leftLocations.isActive) {
       // The returned joint location array can be directly indexed with
