@@ -67,7 +67,7 @@ else()
 endif()
 
 target_link_libraries(openxr-example PRIVATE  ${OPENGL_LIBRARIES} ${SDL2_LINK_LIBRARIES} ${GLEW_LIBRARIES} m glm ${GLFW_LINK_LIBRARIES} /Users/maxamillion/workspace/monado/build/src/xrt/targets/openxr/libopenxr_monado.dylib $ENV{VULKAN_SDK}/lib/libMoltenVK.dylib) # /opt/homebrew/Caskroom/vulkan-sdk/1.2.162.1/macOS/lib/libMoltenVK.dylib
-target_include_directories(openxr-example PRIVATE ${SDL2_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS})
+target_include_directories(openxr-example PRIVATE ${SDL2_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} $ENV{VULKAN_SDK}/include)
 
 if(MSVC)
   target_compile_options(openxr-example PRIVATE /W4 /WX)

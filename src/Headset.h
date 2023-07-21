@@ -43,7 +43,12 @@ public:
   RenderTarget* getRenderTarget(size_t swapchainImageIndex) const;
 
   XrActionStateFloat grab_value[HAND_COUNT];
+  XrActionStateBoolean system_value[HAND_COUNT];
   XrSpaceLocation tracked_locations[64];
+  XrActionSet gameplay_actionset;
+
+  bool pinch_l;
+  bool pinch_r;
 
 
   XrPath grip_pose_path[HAND_COUNT];
@@ -51,6 +56,8 @@ public:
   XrPath thumbstick_y_path[HAND_COUNT];
   XrPath trigger_value_path[HAND_COUNT];
   XrPath select_click_path[HAND_COUNT];
+  XrPath system_click_path[HAND_COUNT];
+  XrPath menu_click_path[HAND_COUNT];
 
   XrHandTrackerEXT leftHandTracker;
   XrHandTrackerEXT rightHandTracker;
@@ -100,6 +107,7 @@ private:
   XrAction hand_pose_action;
   XrSpace hand_pose_spaces[HAND_COUNT];
   XrAction grab_action_float;
+  XrAction system_action_bool;
   XrAction haptic_action;
   XrPath hand_paths[HAND_COUNT];
 
