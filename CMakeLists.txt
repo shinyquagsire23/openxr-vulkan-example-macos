@@ -65,8 +65,9 @@ else()
   target_link_libraries(openxr-example PRIVATE OpenXR::openxr_loader)
 endif()
 
-target_link_libraries(openxr-example PRIVATE  ${OPENGL_LIBRARIES} ${SDL2_LINK_LIBRARIES} ${GLEW_LIBRARIES} m glm /usr/lib/libglfw.so Vulkan::Vulkan) # /opt/homebrew/Caskroom/vulkan-sdk/1.2.162.1/macOS/lib/libMoltenVK.dylib
+target_link_libraries(openxr-example PRIVATE  ${OPENGL_LIBRARIES} ${SDL2_LINK_LIBRARIES} ${GLEW_LIBRARIES} m glm /usr/lib/x86_64-linux-gnu/libglfw.so.3 Vulkan::Vulkan) # /opt/homebrew/Caskroom/vulkan-sdk/1.2.162.1/macOS/lib/libMoltenVK.dylib
 target_include_directories(openxr-example PRIVATE ${SDL2_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS})
+#target_compile_definitions(openxr-example PRIVATE DEBUG)
 
 if(MSVC)
   target_compile_options(openxr-example PRIVATE /W4 /WX)

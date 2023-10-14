@@ -37,20 +37,15 @@ MirrorView::MirrorView(const Context* context) : context(context)
   // Create a fullscreen window
   GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
-  //const VkExtent2D eyeResolution = headset->getEyeResolution(mirrorEyeIndex);
-  //int width = eyeResolution.width;
-  //int height = eyeResolution.height;
-  //int width, height;
-  //glfwGetMonitorWorkarea(monitor, nullptr, nullptr, &width, &height);
-  int width = 1808;
-  int height = 1920;
+  int width, height;
+  glfwGetMonitorWorkarea(monitor, nullptr, nullptr, &width, &height);
 
-//#ifdef DEBUG
+#ifdef DEBUG
   // Create a quarter-sized window in debug mode instead
   width /= 2;
   height /= 2;
   monitor = nullptr;
-//#endif
+#endif
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   window = glfwCreateWindow(width, height, windowTitle, monitor, nullptr);
@@ -71,7 +66,6 @@ MirrorView::MirrorView(const Context* context) : context(context)
   VkResult result = glfwCreateWindowSurface(context->getVkInstance(), window, nullptr, &surface);
   if (result != VK_SUCCESS)
   {
-    printf("Failed create Window surface\n");
     util::error(Error::GenericGLFW);
     valid = false;
     return;
@@ -157,17 +151,17 @@ MirrorView::RenderResult MirrorView::render(uint32_t swapchainImageIndex)
   // Convert the source image layout from undefined to transfer source
   VkImageMemoryBarrier imageMemoryBarrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
   imageMemoryBarrier.image = sourceImage;
-  imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
   imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-  imageMemoryBarrier.srcAccessMask = 0u;
+  imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
   imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
   imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   imageMemoryBarrier.subresourceRange.layerCount = 1u;
   imageMemoryBarrier.subresourceRange.baseArrayLayer = mirrorEyeIndex;
   imageMemoryBarrier.subresourceRange.levelCount = 1u;
   imageMemoryBarrier.subresourceRange.baseMipLevel = 0u;
-  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u, 0u, nullptr,
-                       0u, nullptr, 1u, &imageMemoryBarrier);
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       VK_DEPENDENCY_BY_REGION_BIT, 0u, nullptr, 0u, nullptr, 1u, &imageMemoryBarrier);
 
   // Convert the destination image layout from undefined to transfer destination
   imageMemoryBarrier.image = destinationImage;
@@ -180,8 +174,8 @@ MirrorView::RenderResult MirrorView::render(uint32_t swapchainImageIndex)
   imageMemoryBarrier.subresourceRange.baseArrayLayer = 0u;
   imageMemoryBarrier.subresourceRange.levelCount = 1u;
   imageMemoryBarrier.subresourceRange.baseMipLevel = 0u;
-  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u, 0u, nullptr,
-                       0u, nullptr, 1u, &imageMemoryBarrier);
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       VK_DEPENDENCY_BY_REGION_BIT, 0u, nullptr, 0u, nullptr, 1u, &imageMemoryBarrier);
 
   // We need to crop the source image region to preserve the aspect ratio of the mirror view window
   const glm::vec2 sourceResolution = { static_cast<float>(eyeResolution.width),
@@ -235,8 +229,8 @@ MirrorView::RenderResult MirrorView::render(uint32_t swapchainImageIndex)
   imageMemoryBarrier.subresourceRange.baseArrayLayer = mirrorEyeIndex;
   imageMemoryBarrier.subresourceRange.levelCount = 1u;
   imageMemoryBarrier.subresourceRange.baseMipLevel = 0u;
-  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0u,
-                       0u, nullptr, 0u, nullptr, 1u, &imageMemoryBarrier);
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                       VK_DEPENDENCY_BY_REGION_BIT, 0u, nullptr, 0u, nullptr, 1u, &imageMemoryBarrier);
 
   // Convert the destination image layout from transfer destination to present
   imageMemoryBarrier.image = destinationImage;
@@ -249,8 +243,8 @@ MirrorView::RenderResult MirrorView::render(uint32_t swapchainImageIndex)
   imageMemoryBarrier.subresourceRange.baseArrayLayer = 0u;
   imageMemoryBarrier.subresourceRange.levelCount = 1u;
   imageMemoryBarrier.subresourceRange.baseMipLevel = 0u;
-  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0u, 0u, nullptr,
-                       0u, nullptr, 1u, &imageMemoryBarrier);
+  vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                       VK_DEPENDENCY_BY_REGION_BIT, 0u, nullptr, 0u, nullptr, 1u, &imageMemoryBarrier);
 
   return RenderResult::Visible;
 }
@@ -307,14 +301,12 @@ bool MirrorView::recreateSwapchain()
   {
     if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities) != VK_SUCCESS)
     {
-      printf("Fail vkGetPhysicalDeviceSurfaceCapabilitiesKHR\n");
       util::error(Error::GenericVulkan);
       return false;
     }
 
     if (!(surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
     {
-      printf("Fail other one\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -350,7 +342,6 @@ bool MirrorView::recreateSwapchain()
     uint32_t surfaceFormatCount = 0u;
     if (vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, nullptr) != VK_SUCCESS)
     {
-      printf("Fail vkGetPhysicalDeviceSurfaceFormatsKHR\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -359,7 +350,6 @@ bool MirrorView::recreateSwapchain()
     if (vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, surfaceFormats.data()) !=
         VK_SUCCESS)
     {
-      printf("Fail vkGetPhysicalDeviceSurfaceFormatsKHR\n");
       util::error(Error::GenericVulkan);
       return false;
     }
@@ -407,7 +397,6 @@ bool MirrorView::recreateSwapchain()
   swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
   if (vkCreateSwapchainKHR(vkDevice, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
   {
-    printf("Fail vkCreateSwapchainKHR\n");
     util::error(Error::GenericVulkan);
     return false;
   }
@@ -416,7 +405,6 @@ bool MirrorView::recreateSwapchain()
   uint32_t swapchainImageCount = 0u;
   if (vkGetSwapchainImagesKHR(vkDevice, swapchain, &swapchainImageCount, nullptr) != VK_SUCCESS)
   {
-    printf("Fail vkGetSwapchainImagesKHR\n");
     util::error(Error::GenericVulkan);
     return false;
   }
@@ -424,7 +412,6 @@ bool MirrorView::recreateSwapchain()
   swapchainImages.resize(swapchainImageCount);
   if (vkGetSwapchainImagesKHR(vkDevice, swapchain, &swapchainImageCount, swapchainImages.data()) != VK_SUCCESS)
   {
-    printf("Fail vkGetSwapchainImagesKHR\n");
     util::error(Error::GenericVulkan);
     return false;
   }

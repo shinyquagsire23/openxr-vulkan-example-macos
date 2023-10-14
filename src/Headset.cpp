@@ -812,6 +812,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
   locateInfo.baseSpace = space;
   locateInfo.time = frameState.predictedDisplayTime;
 
+#if 0
   context->xrLocateHandJointsEXT(leftHandTracker, &locateInfo, &leftLocations);
   context->xrLocateHandJointsEXT(rightHandTracker, &locateInfo, &rightLocations);
 
@@ -834,7 +835,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
       for (int i = 0; i <= XR_HAND_JOINT_LITTLE_TIP_EXT; i++) {
         tracked_locations[2+i].pose = leftJointLocations[i].pose;
       }
-      
+ 
 
       //printf("l: %f %f %f\n", palmInWorld.position.x, palmInWorld.position.y, palmInWorld.position.z);
   }
@@ -849,7 +850,7 @@ Headset::BeginFrameResult Headset::beginFrame(uint32_t& swapchainImageIndex)
 
       //printf("r: %f %f %f\n", palmInWorld.position.x, palmInWorld.position.y, palmInWorld.position.z);
   }
-
+#endif
   return BeginFrameResult::RenderFully; // Request full rendering of the frame
 }
 
